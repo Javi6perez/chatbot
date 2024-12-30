@@ -1,5 +1,5 @@
 import streamlit as st
-from openai import OpenAI
+import requests
 
 # ------------------------------------------------------------
 # CONFIGURACIÓN INICIAL DE LA PÁGINA
@@ -105,31 +105,63 @@ if col_bot1.button("Cargar ejemplo", type="secondary"):
                 - Antecedents familiars (Hermano): Hermano con antecedentes de laringotraqueomalacia leve. Laringitis y broncoespasmos de repetición. \n\
                 - Antecedents familiars (Madre): Padres no consanguíneos, niegan endogamia. Oriundos de Emiratos Arabes Unidos, en poblaciones distintas cerca de Dubai. Madre G4, con deseo gestacional ulterior. Niega abortos. Madre con 15 hermanos (8 hormbres, 8 mujeres). Sin antecedentes de importancia. Padre con 3 hermanos y 3 medios hermanos con alteraciones laríngeas no especificadas (pero por cómo se explican no impresionan de gravedad), sin conocer la edad de inicio de alteraciones. No refieren otros antecedentes familiares de interés. Antecedentes de rasgo talasémico en progenitores, pero DIFERENTE gen. Aportan informe: Madre alfa trait. Padre: Beta minor trait."
 
+
+# ------------------------------------------------------------
+# LÓGICA DE TRADUCCIÓN VIA INFERENCE API
+# ------------------------------------------------------------
+
+# 1) Define la URL del modelo (Helsinki-NLP/opus-mt-es-en)
+API_URL = "https://api-inference.huggingface.co/models/Helsinki-NLP/opus-mt-es-en"
+
+# 2) Tu token de Hugging Face (scope "read")
+#    (Reemplaza hf_xxx por tu token real)
+headers = {"Authorization": "Bearer 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"}
+
+def translate_es_to_en(text: str) -> (bool, str):
+    """
+    Traduce texto de español a inglés usando la Inference API de Hugging Face.
+    Retorna (success, message_or_translated_text).
+      - success=True cuando tenemos traducción exitosa.
+      - success=False cuando hay error/carga/etc.
+    """
+    payload = {"inputs": text}
+    try:
+        response = requests.post(API_URL, headers=headers, json=payload)
+
+        if response.status_code == 200:
+            data = response.json()
+            if isinstance(data, list) and len(data) > 0:
+                return True, data[0].get("translation_text", "")
+            else:
+                return False, "No se recibió traducción válida."
+
+        elif response.status_code == 503:
+            # Modelo en proceso de carga. Podemos mostrar el "estimated_time"
+            data = response.json()
+            estimated_time = data.get("estimated_time", "Desconocido")
+            return False, f"El modelo está cargándose. Tiempo estimado: {estimated_time} s"
+
+        else:
+            # Otros errores (400, 401, 500, etc.)
+            return False, f"Error {response.status_code}: {response.text}"
+
+    except Exception as e:
+        return False, f"Error de conexión o formato: {str(e)}"
+
+
+
 # 3) Botón Traducir
-if col_bot3.button("Traducir", help="Haz clic para traducir el texto ingresado", type="primary"):
+if col_bot3.button("Traducir", help="Traduce el texto ES→EN con Hugging Face", type="primary"):
     if not user_prompt.strip():
         st.warning("Por favor, ingresa algún texto.", icon="⚠️")
     else:
-        st.info("Procesando la traducción, por favor espera...", icon="⏳")
-        try:
-            # Traducción usando OpenAI
-            openai_api_key = (
-                "sk-proj-C0JjGcobEsUWfwddppcWAwqlVSmnnWvJvJcUUPK99WGdbvex47ZsP51zpXSZNZ6SksJG3E366"
-                "UT3BlbkFJBbeLM6uvkTXqHj-J33YPl1aNZnQyCZdoY0aTTKKcvlt_Uwtj87GOoE65XqnOW9G9NuwhsDyn8A"
-            )
-            client = OpenAI(api_key=openai_api_key)
+        with st.spinner("Traduciendo..."):
+            success, result_text = translate_es_to_en(user_prompt.strip())
 
-            response = client.chat.completions.create(
-                model="gpt-3.5-turbo",
-                messages=[
-                    #{"role": "system", "content": f"Traduce del {idioma_entrada} al {idioma_salida}."},
-                    {"role": "user", "content": user_prompt}
-                ]
-            )
-
-            translated_text = response["choices"][0]["message"]["content"]
+        # Evaluamos success
+        if success:
             st.success("Traducción completada con éxito.")
-            st.text_area("Resultado de la traducción:", translated_text, height=150)
-
-        except Exception as e:
-            st.error(f"Ocurrió un error al procesar la traducción: {e}")
+            st.text_area("Resultado de la traducción:", result_text, height=150)
+        else:
+            # Muestra error o estado de "cargando"
+            st.error(result_text)
