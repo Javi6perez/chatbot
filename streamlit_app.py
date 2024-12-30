@@ -115,7 +115,7 @@ API_URL = "https://api-inference.huggingface.co/models/Helsinki-NLP/opus-mt-es-e
 
 # 2) Tu token de Hugging Face (scope "read")
 #    (Reemplaza hf_xxx por tu token real)
-headers = {"Authorization": "Bearer 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"}
+headers = {"Authorization": "Bearer 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"}
 
 def translate_es_to_en(text: str) -> (bool, str):
     """
