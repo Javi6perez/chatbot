@@ -1,53 +1,114 @@
-import streamlit as st
+import streamlit as st 
 import requests
 
 # ------------------------------------------------------------
 # CONFIGURACIÓN INICIAL DE LA PÁGINA
 # ------------------------------------------------------------
 st.set_page_config(
-    page_title="Agente de Traducción Médica"
+    page_title="Agente de Traducción Médica",
+    layout="wide"
 )
-#st.markdown("<div class='otro'>", unsafe_allow_html=True)
-col1, col2, col3 = st.columns([1,1,1])
-# Muestra el logo de VidasPrime (ajusta la ruta o URL a tu imagen).
-col1.image("https://www.sjdhospitalbarcelona.org/themes/hsjd/assets/img/logo.svg", width=250)
-# Muestra el logo de VidasPrime (ajusta la ruta o URL a tu imagen).
-col3.image("https://vidasprime.es/wp-content/uploads/2020/10/logovidasprime_01.svg", width=200)
 
 # ------------------------------------------------------------
-# CSS PERSONALIZADO PARA LA BARRA SUPERIOR Y BOTONES
+# CSS PERSONALIZADO PARA BOTONES
 # ------------------------------------------------------------
 st.markdown(
     """
     <style>
-    /* Espacio superior para no tapar el contenido */
-    .main {
-        margin-top: 70px;
-        padding: 20px;
+    /* Estilo personalizado para botones de Streamlit */
+    div.stButton > button,
+    div[data-testid="stButton"] > button {
+        background-color: #5a189a !important; /* Morado */
+        color: white !important;
+        border: none !important;
+        border-radius: 5px !important;
+        padding: 0.6em 1.2em !important;
+        font-size: 16px !important;
+        cursor: pointer !important;
+    }
+    div.stButton > button:hover,
+    div[data-testid="stButton"] > button:hover {
+        background-color: #7b2cbf !important; /* Morado claro al hacer hover */
+        color: #ffffff !important;
     }
 
-    /* Secciones con fondo y borde */
-    .section {
-        background-color: #fafafa;
-        border: 1px solid #ddd;
-        border-radius: 5px;
-        padding: 20px;
-        margin-bottom: 20px;
+    /* Estilo para el botón "Cargar ejemplo" */
+    div.stButton.secondary > button {
+        background-color: #e0e0e0 !important; /* Gris claro */
+        color: #000000 !important;
+    }
+    div.stButton.secondary > button:hover {
+        background-color: #cfcfcf !important;
+        color: #000000 !important;
     }
     </style>
-    
     """,
     unsafe_allow_html=True
 )
-# ------------------------------------------------------------
-# CONTENEDOR PRINCIPAL
-# ------------------------------------------------------------
 
 # ------------------------------------------------------------
-# CONTROL DE PANTALLA DE BIENVENIDA
+# FUNCIONES AUXILIARES
+# ------------------------------------------------------------
+def translate_text(input_text, source_lang, target_lang):
+    """
+    Traduce texto usando la API de Hugging Face.
+    Parámetros:
+    - input_text: Texto a traducir.
+    - source_lang: Idioma de origen (código, e.g., 'es').
+    - target_lang: Idioma de destino (código, e.g., 'en').
+    Retorna:
+    - (success, message_or_text)
+    """
+    API_URL = f"https://api-inference.huggingface.co/models/Helsinki-NLP/opus-mt-{source_lang}-{target_lang}"
+    headers = {"Authorization": f"Bearer {st.secrets['huggingface']['api_token']}"}
+    payload = {"inputs": input_text}
+
+    try:
+        response = requests.post(API_URL, headers=headers, json=payload)
+        if response.status_code == 200:
+            data = response.json()
+            if isinstance(data, list) and len(data) > 0:
+                return True, data[0].get("translation_text", "")
+            else:
+                return False, "No se recibió traducción válida."
+        elif response.status_code == 503:
+            # Modelo en proceso de carga
+            data = response.json()
+            estimated_time = data.get("estimated_time", "Desconocido")
+            return False, f"El modelo está cargándose. Tiempo estimado: {estimated_time} s."
+        else:
+            return False, f"Error {response.status_code}: {response.text}"
+    except Exception as e:
+        return False, f"Error de conexión o formato: {str(e)}"
+
+# ------------------------------------------------------------
+# LOGO
+# ------------------------------------------------------------
+st.image("https://vidasprime.es/wp-content/uploads/2022/06/logo_vidas_prime_morado.png", width=200)
+
+# ------------------------------------------------------------
+# CONTROL DE ESTADO
 # ------------------------------------------------------------
 if "pantalla_bienvenida" not in st.session_state:
     st.session_state["pantalla_bienvenida"] = True
+
+if "idioma_entrada" not in st.session_state:
+    st.session_state["idioma_entrada"] = "es"  # Español por defecto
+
+if "idioma_salida" not in st.session_state:
+    st.session_state["idioma_salida"] = "en"  # Inglés por defecto
+
+if "texto_actual" not in st.session_state:
+    st.session_state["texto_actual"] = ""
+
+# Lista de idiomas disponibles
+disponible_idiomas = {
+    "es": "Español",
+    "en": "Inglés",
+    "fr": "Francés",
+    "de": "Alemán",
+    "ca": "Catalán",
+}
 
 # ------------------------------------------------------------
 # PANTALLA DE BIENVENIDA
@@ -56,7 +117,7 @@ if st.session_state["pantalla_bienvenida"]:
     st.markdown(
         """
         <div class='section'>
-            <h3>Bienvenido/a</h3>
+            <h3>📢 Bienvenido/a</h3>
             <p>
                 Este agente está diseñado para <b>facilitar la traducción precisa y comprensible</b>
                 de textos médicos, informes clínicos y otra documentación relacionada con la salud. 
@@ -68,100 +129,92 @@ if st.session_state["pantalla_bienvenida"]:
         unsafe_allow_html=True
     )
 
-    # Único botón "Comenzar"
-    if st.button("Comenzar", help="Iniciar la aplicación", type="primary"):
+    # Único botón "Comenzar" dentro de la pantalla de bienvenida
+    if st.button("Comenzar", help="Iniciar la aplicación", key="comenzar_btn"):
         st.session_state["pantalla_bienvenida"] = False
-
-    st.stop()  # Detenemos la ejecución para que no se muestre lo demás
+        st.rerun()
+    st.stop()  # Detener la ejecución aquí para no mostrar la sección principal
 
 # ------------------------------------------------------------
-# SECCIÓN PRINCIPAL (SI YA SE PASÓ LA BIENVENIDA)
+# SECCIÓN PRINCIPAL
 # ------------------------------------------------------------
+st.markdown("## Agente de Traducción")
 
-# 1) Selección de idiomas
-#st.subheader("Seleccione idiomas")
-#col1, col2 = st.columns(2)
+# Selección de idiomas
+st.markdown("### Configuración de idiomas")
+col1, col2 = st.columns(2)
+with col1:
+    st.session_state["idioma_entrada"] = st.selectbox(
+        "Idioma de entrada",
+        options=list(disponible_idiomas.keys()),
+        format_func=lambda x: disponible_idiomas[x],
+        index=list(disponible_idiomas.keys()).index("es")  # Español por defecto
+    )
+with col2:
+    st.session_state["idioma_salida"] = st.selectbox(
+        "Idioma de salida",
+        options=list(disponible_idiomas.keys()),
+        format_func=lambda x: disponible_idiomas[x],
+        index=list(disponible_idiomas.keys()).index("en")  # Inglés por defecto
+    )
 
-#idioma_entrada = col1.selectbox("Idioma de entrada", ["Sin especificar", "Español", "Inglés", "Francés", "Alemán"], index=0)
-#idioma_salida = col2.selectbox("Idioma de salida", ["Sin especificar", "Inglés", "Francés", "Alemán"], index=0)
+# ------------------------------------------------------------
+# MANEJO DE BOTONES ANTES DEL TEXT_AREA
+# ------------------------------------------------------------
+st.markdown("### Introduce texto, sube un archivo o carga el ejemplo")
 
-#st.markdown("</div>", unsafe_allow_html=True)
+# Botones para modificar el área de texto
+col_bot1, col_bot2 = st.columns([3,1])
 
-# 2) Campo de texto
-st.subheader("Texto para analizar o traducir")
-user_prompt = st.text_area(
-    label="Ingresa el texto",
-    placeholder="Texto a traducir",
-    height=100,
-    value=st.session_state.get("ejemplo_cargado", "")  # Carga el ejemplo si ya se cargó
+with col_bot1:
+    uploaded_file = st.file_uploader("Cargar archivo (txt)", type=["txt"], key="file_uploader")
+    if uploaded_file is not None:
+        try:
+            file_content = uploaded_file.read().decode("utf-8")
+            st.session_state["texto_actual"] = file_content
+            st.success("Archivo cargado correctamente.")
+        except Exception as e:
+            st.error(f"Error al cargar el archivo: {e}")
+        # No necesitas st.rerun()
 
+with col_bot2:
+    if st.button("Cargar ejemplo", help="Cargar un texto de ejemplo", key="cargar_ejemplo_btn"):
+        st.session_state["texto_actual"] = (
+            "Antecedentes familiares:\n"
+            "- Antecedents familiars (Hermano): Hermano con antecedentes de laringotraqueomalacia leve. Laringitis y broncoespasmos de repetición.\n"
+            "- Antecedents familiars (Madre): Padres no consanguíneos, niegan endogamia. Oriundos de Emiratos Árabes Unidos, en poblaciones distintas cerca de Dubái. Madre G4, con deseo gestacional ulterior. Niega abortos. Madre con 15 hermanos (8 hombres, 8 mujeres). Sin antecedentes de importancia. Padre con 3 hermanos y 3 medios hermanos con alteraciones laríngeas no especificadas, sin conocer la edad de inicio de alteraciones. No refieren otros antecedentes familiares de interés. Antecedentes de rasgo talasémico en progenitores, pero DIFERENTE gen. Aportan informe: Madre alfa trait. Padre: Beta minor trait."
+        )
+        # No usaremos st.rerun()
+
+# ------------------------------------------------------------
+# Mostrar el área de texto unificada después de manejar los botones
+# ------------------------------------------------------------
+st.markdown("### Texto para traducir")
+st.text_area(
+    "Texto a traducir",
+    key="texto_actual",
+    height=200,
 )
-
-col_bot1, col_bot3 = st.columns([6,1])
-
-# Botón para cargar el ejemplo
-if col_bot1.button("Cargar ejemplo", type="secondary"):
-    st.session_state["ejemplo_cargado"] = "Antecedentes familiares: \n \
-                - Antecedents familiars (Hermano): Hermano con antecedentes de laringotraqueomalacia leve. Laringitis y broncoespasmos de repetición. \n\
-                - Antecedents familiars (Madre): Padres no consanguíneos, niegan endogamia. Oriundos de Emiratos Arabes Unidos, en poblaciones distintas cerca de Dubai. Madre G4, con deseo gestacional ulterior. Niega abortos. Madre con 15 hermanos (8 hormbres, 8 mujeres). Sin antecedentes de importancia. Padre con 3 hermanos y 3 medios hermanos con alteraciones laríngeas no especificadas (pero por cómo se explican no impresionan de gravedad), sin conocer la edad de inicio de alteraciones. No refieren otros antecedentes familiares de interés. Antecedentes de rasgo talasémico en progenitores, pero DIFERENTE gen. Aportan informe: Madre alfa trait. Padre: Beta minor trait."
-
 
 # ------------------------------------------------------------
 # LÓGICA DE TRADUCCIÓN VIA INFERENCE API
 # ------------------------------------------------------------
 
-# 1) Define la URL del modelo (Helsinki-NLP/opus-mt-es-en)
-API_URL = "https://api-inference.huggingface.co/models/Helsinki-NLP/opus-mt-es-en"
-
-# 2) Tu token de Hugging Face (scope "read")
-#    (Reemplaza hf_xxx por tu token real)
-headers = {"Authorization": "Bearer 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"}
-
-def translate_es_to_en(text: str) -> (bool, str):
-    """
-    Traduce texto de español a inglés usando la Inference API de Hugging Face.
-    Retorna (success, message_or_translated_text).
-      - success=True cuando tenemos traducción exitosa.
-      - success=False cuando hay error/carga/etc.
-    """
-    payload = {"inputs": text}
-    try:
-        response = requests.post(API_URL, headers=headers, json=payload)
-
-        if response.status_code == 200:
-            data = response.json()
-            if isinstance(data, list) and len(data) > 0:
-                return True, data[0].get("translation_text", "")
-            else:
-                return False, "No se recibió traducción válida."
-
-        elif response.status_code == 503:
-            # Modelo en proceso de carga. Podemos mostrar el "estimated_time"
-            data = response.json()
-            estimated_time = data.get("estimated_time", "Desconocido")
-            return False, f"El modelo está cargándose. Tiempo estimado: {estimated_time} s"
-
-        else:
-            # Otros errores (400, 401, 500, etc.)
-            return False, f"Error {response.status_code}: {response.text}"
-
-    except Exception as e:
-        return False, f"Error de conexión o formato: {str(e)}"
-
-
-
-# 3) Botón Traducir
-if col_bot3.button("Traducir", help="Traduce el texto ES→EN con Hugging Face", type="primary"):
-    if not user_prompt.strip():
-        st.warning("Por favor, ingresa algún texto.", icon="⚠️")
+# Botón "Traducir" para traducir
+if st.button("Traducir", help="Traduce el texto", key="traducir_btn"):
+    if not st.session_state["texto_actual"].strip():
+        st.warning("Por favor, ingresa algún texto o carga un archivo válido.", icon="⚠️")
     else:
         with st.spinner("Traduciendo..."):
-            success, result_text = translate_es_to_en(user_prompt.strip())
-
-        # Evaluamos success
+            success, result_text = translate_text(
+                st.session_state["texto_actual"],
+                st.session_state["idioma_entrada"],
+                st.session_state["idioma_salida"],
+            )
         if success:
             st.success("Traducción completada con éxito.")
-            st.text_area("Resultado de la traducción:", result_text, height=150)
+            st.text_area("Texto traducido:", result_text, height=200)
         else:
-            # Muestra error o estado de "cargando"
             st.error(result_text)
+
+st.markdown("</div>", unsafe_allow_html=True)
