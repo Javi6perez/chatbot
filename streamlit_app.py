@@ -12,13 +12,13 @@ st.set_page_config(
 # ------------------------------------------------------------
 # CSS PERSONALIZADO PARA BOTONES
 # ------------------------------------------------------------
+# CSS actualizado para botones primary, secondary y tertiary con cambios en el secondary
 st.markdown(
     """
     <style>
-    /* Estilo personalizado para botones de Streamlit */
-    div.stButton > button,
-    div[data-testid="stButton"] > button {
-        background-color: #5a189a !important; /* Morado */
+    /* Botón Primary */
+    button[kind="primary"] {
+        background-color: #5a189a !important; /* Morado oscuro */
         color: white !important;
         border: none !important;
         border-radius: 5px !important;
@@ -26,20 +26,42 @@ st.markdown(
         font-size: 16px !important;
         cursor: pointer !important;
     }
-    div.stButton > button:hover,
-    div[data-testid="stButton"] > button:hover {
+
+    button[kind="primary"]:hover {
         background-color: #7b2cbf !important; /* Morado claro al hacer hover */
         color: #ffffff !important;
     }
 
-    /* Estilo para el botón "Cargar ejemplo" */
-    div.stButton.secondary > button {
-        background-color: #e0e0e0 !important; /* Gris claro */
-        color: #000000 !important;
+    /* Botón Secondary (nuevo diseño) */
+    button[kind="secondary"] {
+        background-color: #d3a5fa !important; /* Morado claro */
+        color: #5a189a !important; /* Texto morado oscuro */
+        border: none !important;
+        border-radius: 5px !important;
+        padding: 0.6em 1.2em !important;
+        font-size: 16px !important;
+        cursor: pointer !important;
     }
-    div.stButton.secondary > button:hover {
-        background-color: #cfcfcf !important;
-        color: #000000 !important;
+
+    button[kind="secondary"]:hover {
+        background-color: #dcbcf7 !important; /* Fondo más claro al hacer hover */
+        color: #7b2cbf !important; /* Texto morado más claro */
+    }
+
+    /* Botón Tertiary */
+    button[kind="tertiary"] {
+        background-color: transparent !important; /* Fondo transparente */
+        color: #5a189a !important; /* Texto morado */
+        border: none !important;
+        padding: 0.6em 1.2em !important;
+        font-size: 16px !important;
+        cursor: pointer !important;
+        text-decoration: underline !important; /* Subrayado para diferenciar */
+    }
+
+    button[kind="tertiary"]:hover {
+        color: #7b2cbf !important; /* Texto morado claro al hacer hover */
+        text-decoration: none !important; /* Sin subrayado */
     }
     </style>
     """,
@@ -130,7 +152,7 @@ if st.session_state["pantalla_bienvenida"]:
     )
 
     # Único botón "Comenzar" dentro de la pantalla de bienvenida
-    if st.button("Comenzar", help="Iniciar la aplicación", key="comenzar_btn"):
+    if st.button("Comenzar", help="Iniciar la aplicación", key="comenzar_btn", type='primary'):
         st.session_state["pantalla_bienvenida"] = False
         st.rerun()
     st.stop()  # Detener la ejecución aquí para no mostrar la sección principal
@@ -164,21 +186,24 @@ with col2:
 st.markdown("### Introduce texto, sube un archivo o carga el ejemplo")
 
 # Botones para modificar el área de texto
-col_bot1, col_bot2 = st.columns([3,1])
+
+uploaded_file = st.file_uploader("Cargar archivo (txt)", type=["txt"], key="file_uploader")
+if uploaded_file is not None:
+    try:
+        file_content = uploaded_file.read().decode("utf-8")
+        st.session_state["texto_actual"] = file_content
+        st.success("Archivo cargado correctamente.")
+    except Exception as e:
+        st.error(f"Error al cargar el archivo: {e}")
+    # No necesitas st.rerun()
+
+col_bot1, col_bot2= st.columns([1,5])
 
 with col_bot1:
-    uploaded_file = st.file_uploader("Cargar archivo (txt)", type=["txt"], key="file_uploader")
-    if uploaded_file is not None:
-        try:
-            file_content = uploaded_file.read().decode("utf-8")
-            st.session_state["texto_actual"] = file_content
-            st.success("Archivo cargado correctamente.")
-        except Exception as e:
-            st.error(f"Error al cargar el archivo: {e}")
-        # No necesitas st.rerun()
+    col_bot1.markdown("### Texto para traducir")
 
 with col_bot2:
-    if st.button("Cargar ejemplo", help="Cargar un texto de ejemplo", key="cargar_ejemplo_btn"):
+    if st.button("Cargar ejemplo", help="Cargar un texto de ejemplo", key="cargar_ejemplo_btn", type='tertiary'):
         st.session_state["texto_actual"] = (
             "Antecedentes familiares:\n"
             "- Antecedents familiars (Hermano): Hermano con antecedentes de laringotraqueomalacia leve. Laringitis y broncoespasmos de repetición.\n"
@@ -189,7 +214,6 @@ with col_bot2:
 # ------------------------------------------------------------
 # Mostrar el área de texto unificada después de manejar los botones
 # ------------------------------------------------------------
-st.markdown("### Texto para traducir")
 st.text_area(
     "Texto a traducir",
     key="texto_actual",
@@ -201,7 +225,7 @@ st.text_area(
 # ------------------------------------------------------------
 
 # Botón "Traducir" para traducir
-if st.button("Traducir", help="Traduce el texto", key="traducir_btn"):
+if st.button("Traducir", help="Traduce el texto", key="traducir_btn", type= 'primary'):
     if not st.session_state["texto_actual"].strip():
         st.warning("Por favor, ingresa algún texto o carga un archivo válido.", icon="⚠️")
     else:
