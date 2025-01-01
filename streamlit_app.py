@@ -197,13 +197,13 @@ if uploaded_file is not None:
         st.error(f"Error al cargar el archivo: {e}")
     # No necesitas st.rerun()
 
-col_bot1, col_bot2= st.columns([1,5])
+col_bot1, col_bot2 = st.columns([1,5])
 
 with col_bot1:
     col_bot1.markdown("### Texto para traducir")
 
 with col_bot2:
-    if st.button("Cargar ejemplo", help="Cargar un texto de ejemplo", key="cargar_ejemplo_btn", type='tertiary'):
+    if  col_bot2.button("Cargar ejemplo", help="Cargar un texto de ejemplo", key="cargar_ejemplo_btn", type='tertiary'):
         st.session_state["texto_actual"] = (
             "Antecedentes familiares:\n"
             "- Antecedents familiars (Hermano): Hermano con antecedentes de laringotraqueomalacia leve. Laringitis y broncoespasmos de repetición.\n"
