@@ -317,21 +317,13 @@ with col2:
 # MANEJO DE BOTONES ANTES DEL TEXT_AREA
 # ------------------------------------------------------------
 
-texto_col1, texto_col2, texto_col3 = st.columns([2,1,1], vertical_alignment= "center")  
 
-texto_col1.markdown("### Información de entrada")
+st.markdown("### Información de entrada")
 
-if texto_col2.button("Carga un ejemplo", help="Cargar un texto de ejemplo", key="cargar_ejemplo_btn", type='tertiary'):
-    st.session_state["texto_actual"] = (
-        "Antecedentes familiares:\n"
-        "- Antecedents familiars (Hermano): Hermano con antecedentes de laringotraqueomalacia leve. Laringitis y broncoespasmos de repetición.\n"
-        "- Antecedents familiars (Madre): Padres no consanguíneos, niegan endogamia. Oriundos de Emiratos Árabes Unidos, en poblaciones distintas cerca de Dubái. Madre G4, con deseo gestacional ulterior. Niega abortos. Madre con 15 hermanos (8 hombres, 8 mujeres). Sin antecedentes de importancia. Padre con 3 hermanos y 3 medios hermanos con alteraciones laríngeas no especificadas, sin conocer la edad de inicio de alteraciones. No refieren otros antecedentes familiares de interés. Antecedentes de rasgo talasémico en progenitores, pero DIFERENTE gen. Aportan informe: Madre alfa trait. Padre: Beta minor trait."
-    )
-    # No usaremos st.rerun()
-
+texto_col1, texto_col2 = st.columns([2,1], vertical_alignment= "center")  
 
 # Botones para modificar el área de texto
-uploaded_file = st.file_uploader("Carga un archivo (txt)", type=["txt"], key="file_uploader")
+uploaded_file = texto_col1.file_uploader("Carga un archivo (txt)", type=["txt"], key="file_uploader")
 if uploaded_file is not None:
     try:
         file_content = uploaded_file.read().decode("utf-8")
@@ -340,6 +332,15 @@ if uploaded_file is not None:
     except Exception as e:
         st.error(f"Error al cargar el archivo: {e}")
     # No necesitas st.rerun()
+
+if texto_col2.button("... o carga un ejemplo", help="Cargar un texto de ejemplo", key="cargar_ejemplo_btn", type='tertiary'):
+    st.session_state["texto_actual"] = (
+        "Antecedentes familiares:\n"
+        "- Antecedents familiars (Hermano): Hermano con antecedentes de laringotraqueomalacia leve. Laringitis y broncoespasmos de repetición.\n"
+        "- Antecedents familiars (Madre): Padres no consanguíneos, niegan endogamia. Oriundos de Emiratos Árabes Unidos, en poblaciones distintas cerca de Dubái. Madre G4, con deseo gestacional ulterior. Niega abortos. Madre con 15 hermanos (8 hombres, 8 mujeres). Sin antecedentes de importancia. Padre con 3 hermanos y 3 medios hermanos con alteraciones laríngeas no especificadas, sin conocer la edad de inicio de alteraciones. No refieren otros antecedentes familiares de interés. Antecedentes de rasgo talasémico en progenitores, pero DIFERENTE gen. Aportan informe: Madre alfa trait. Padre: Beta minor trait."
+    )
+    # No usaremos st.rerun()
+
 
 st.markdown("### Traducción")
 
