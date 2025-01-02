@@ -303,7 +303,7 @@ with col1:
         "Idioma de entrada",
         options=list(disponible_idiomas.keys()),
         format_func=lambda x: disponible_idiomas[x],
-        index=list(disponible_idiomas.keys()).index("es")  # Español por defecto
+        index=list(disponible_idiomas.keys()).index("ca")  # Español por defecto
     )
 with col2:
     st.session_state["idioma_salida"] = st.selectbox(
