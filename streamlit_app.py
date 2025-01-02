@@ -242,11 +242,11 @@ if "texto_actual" not in st.session_state:
 
 # Lista de idiomas disponibles
 disponible_idiomas = {
+    "ca": "Catalán",
     "es": "Español",
     "en": "Inglés",
     "fr": "Francés",
     "de": "Alemán",
-    "ca": "Catalán",
 }
 
 # ------------------------------------------------------------
