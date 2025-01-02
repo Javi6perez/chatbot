@@ -6,7 +6,7 @@ import requests
 # ------------------------------------------------------------
 st.set_page_config(
     page_title="Agente de Traducción Médica",
-    layout="wide"
+    layout="centered"
 )
 
 # ------------------------------------------------------------
@@ -21,7 +21,7 @@ st.markdown(
     /* Estilos Generales */
     body {
         font-family: 'Soleil', sans-serif;
-        background-color: #f2f3f5; /* Fondo claro */
+        background-color: #eef2fc; /* Fondo azul claro */
         color: #1d242d; /* Texto principal en gris oscuro */
     }
 
@@ -57,9 +57,31 @@ st.markdown(
         margin-bottom: 2rem;
     }
 
+    /* Bloques Destacados */
+    .highlight-block {
+        background-color: #eef2fc; /* Fondo azul claro */
+        border-radius: 15px;
+        padding: 1.5rem;
+        margin: 1.5rem 0;
+        text-align: center;
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+        color: #4e20e2;
+    }
+
+    .highlight-block h4 {
+        font-size: 1.5em;
+        margin-bottom: 1rem;
+    }
+
+    .highlight-block p {
+        font-size: 1.1em;
+        line-height: 1.6;
+    }
+
     /* Estilos para Botones de Streamlit */
-    .stButton button {
-        background-color: #4e20e2 !important; /* Morado principal */
+       /* Botón Primary */
+    button[kind="primary"] {
+        background-color: #4e20e2 !important; /* Morado oscuro */
         color: white !important;
         border: none !important;
         border-radius: 25px !important; /* Botón redondeado */
@@ -67,12 +89,44 @@ st.markdown(
         font-size: 1em !important;
         cursor: pointer !important;
         transition: background-color 0.3s ease;
-        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-        font-family: 'Soleil', sans-serif;
+        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);        padding: 0.6em 1.2em !important;
     }
 
-    .stButton button:hover {
-        background-color: #3e1fff !important; /* Morado más claro al hacer hover */
+    button[kind="primary"]:hover {
+        background-color: #3e1fff !important; /* Morado claro al hacer hover */
+        color: #ffffff !important;
+    }
+
+    /* Botón Secondary (nuevo diseño) */
+    button[kind="secondary"] {
+        background-color: #d3a5fa !important; /* Morado claro */
+        color: #5a189a !important; /* Texto morado oscuro */
+        border: none !important;
+        border-radius: 5px !important;
+        padding: 0.6em 1.2em !important;
+        font-size: 16px !important;
+        cursor: pointer !important;
+    }
+
+    button[kind="secondary"]:hover {
+        background-color: #dcbcf7 !important; /* Fondo más claro al hacer hover */
+        color: #7b2cbf !important; /* Texto morado más claro */
+    }
+
+    /* Botón Tertiary */
+    button[kind="tertiary"] {
+        background-color: transparent !important; /* Fondo transparente */
+        color: #4e20e2 !important; /* Texto morado */
+        border: none !important;
+        padding: 0.6em 1.2em !important;
+        font-size: 16px !important;
+        cursor: pointer !important;
+        text-decoration: underline !important; /* Subrayado para diferenciar */
+    }
+
+    button[kind="tertiary"]:hover {
+        color: #3e1fff !important; /* Texto morado claro al hacer hover */
+        text-decoration: none !important; /* Sin subrayado */
     }
 
     /* Estilos para Text Areas */
@@ -132,7 +186,6 @@ st.markdown(
     unsafe_allow_html=True
 )
 
-
 # ------------------------------------------------------------
 # FUNCIONES AUXILIARES
 # ------------------------------------------------------------
@@ -159,7 +212,6 @@ def translate_text(input_text, source_lang, target_lang):
             else:
                 return False, "No se recibió traducción válida."
         elif response.status_code == 503:
-            # Modelo en proceso de carga
             data = response.json()
             estimated_time = data.get("estimated_time", "Desconocido")
             return False, f"El modelo está cargándose. Tiempo estimado: {estimated_time} s."
@@ -171,7 +223,7 @@ def translate_text(input_text, source_lang, target_lang):
 # ------------------------------------------------------------
 # LOGO
 # ------------------------------------------------------------
-st.markdown('<div class="logo"><img src="https://vidasprime.es/wp-content/uploads/2022/06/logo_vidas_prime_morado.png" width="300"></div>', unsafe_allow_html=True)
+st.markdown('<a href="https://vidasprime.es" class="logo svg"><img src="https://vidasprime.es/wp-content/uploads/2022/06/logo_vidas_prime_morado.png" width="250"></a>', unsafe_allow_html=True)
 
 # ------------------------------------------------------------
 # CONTROL DE ESTADO
@@ -216,7 +268,7 @@ if st.session_state["pantalla_bienvenida"]:
         unsafe_allow_html=True
     )
 
-    com_but_col1, com_but_col2, com_but_col3 = st.columns([1,1,1])
+    com_but_col1, com_but_col2 = st.columns([2,3], border=False)
 
     # Único botón "Comenzar" dentro de la pantalla de bienvenida
     if com_but_col2.button("Comenzar", help="Iniciar la aplicación", key="comenzar_btn", type='primary'):
@@ -227,7 +279,21 @@ if st.session_state["pantalla_bienvenida"]:
 # ------------------------------------------------------------
 # SECCIÓN PRINCIPAL
 # ------------------------------------------------------------
-st.markdown("## Agente de Traducción")
+#st.markdown("## Agente de Traducción")
+
+# Bloque destacado añadido (UXM-001)
+st.markdown(
+    """
+    <div class='highlight-block'>
+        <h2>Agente de Traducción Médica</h2>
+        <p>
+            Ofrecemos una solución rápida y confiable para traducir documentación médica, ayudando a 
+            mejorar la comunicación entre profesionales y pacientes.
+        </p>
+    </div>
+    """,
+    unsafe_allow_html=True
+)
 
 # Selección de idiomas
 st.markdown("### Configuración de idiomas")
@@ -250,10 +316,22 @@ with col2:
 # ------------------------------------------------------------
 # MANEJO DE BOTONES ANTES DEL TEXT_AREA
 # ------------------------------------------------------------
-st.markdown("### Introduce texto, sube un archivo o carga el ejemplo")
+
+texto_col1, texto_col2, texto_col3 = st.columns([2,1,1], vertical_alignment= "center")  
+
+texto_col1.markdown("### Información de entrada")
+
+if texto_col2.button("Carga un ejemplo", help="Cargar un texto de ejemplo", key="cargar_ejemplo_btn", type='tertiary'):
+    st.session_state["texto_actual"] = (
+        "Antecedentes familiares:\n"
+        "- Antecedents familiars (Hermano): Hermano con antecedentes de laringotraqueomalacia leve. Laringitis y broncoespasmos de repetición.\n"
+        "- Antecedents familiars (Madre): Padres no consanguíneos, niegan endogamia. Oriundos de Emiratos Árabes Unidos, en poblaciones distintas cerca de Dubái. Madre G4, con deseo gestacional ulterior. Niega abortos. Madre con 15 hermanos (8 hombres, 8 mujeres). Sin antecedentes de importancia. Padre con 3 hermanos y 3 medios hermanos con alteraciones laríngeas no especificadas, sin conocer la edad de inicio de alteraciones. No refieren otros antecedentes familiares de interés. Antecedentes de rasgo talasémico en progenitores, pero DIFERENTE gen. Aportan informe: Madre alfa trait. Padre: Beta minor trait."
+    )
+    # No usaremos st.rerun()
+
 
 # Botones para modificar el área de texto
-uploaded_file = st.file_uploader("Cargar archivo (txt)", type=["txt"], key="file_uploader")
+uploaded_file = st.file_uploader("Carga un archivo (txt)", type=["txt"], key="file_uploader")
 if uploaded_file is not None:
     try:
         file_content = uploaded_file.read().decode("utf-8")
@@ -263,19 +341,7 @@ if uploaded_file is not None:
         st.error(f"Error al cargar el archivo: {e}")
     # No necesitas st.rerun()
 
-col_bot1, col_bot2 = st.columns([1,5])
-
-with col_bot1:
-    col_bot1.markdown("### Texto para traducir")
-
-with col_bot2:
-    if col_bot2.button("Cargar ejemplo", help="Cargar un texto de ejemplo", key="cargar_ejemplo_btn", type='tertiary'):
-        st.session_state["texto_actual"] = (
-            "Antecedentes familiares:\n"
-            "- Antecedents familiars (Hermano): Hermano con antecedentes de laringotraqueomalacia leve. Laringitis y broncoespasmos de repetición.\n"
-            "- Antecedents familiars (Madre): Padres no consanguíneos, niegan endogamia. Oriundos de Emiratos Árabes Unidos, en poblaciones distintas cerca de Dubái. Madre G4, con deseo gestacional ulterior. Niega abortos. Madre con 15 hermanos (8 hombres, 8 mujeres). Sin antecedentes de importancia. Padre con 3 hermanos y 3 medios hermanos con alteraciones laríngeas no especificadas, sin conocer la edad de inicio de alteraciones. No refieren otros antecedentes familiares de interés. Antecedentes de rasgo talasémico en progenitores, pero DIFERENTE gen. Aportan informe: Madre alfa trait. Padre: Beta minor trait."
-        )
-        # No usaremos st.rerun()
+st.markdown("### Traducción")
 
 # ------------------------------------------------------------
 # Mostrar el área de texto unificada después de manejar los botones
@@ -283,6 +349,7 @@ with col_bot2:
 st.text_area(
     "Texto a traducir",
     key="texto_actual",
+    placeholder="Introduzca el texto aquí",
     height=200,
 )
 
