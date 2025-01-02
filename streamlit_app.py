@@ -10,63 +10,128 @@ st.set_page_config(
 )
 
 # ------------------------------------------------------------
-# CSS PERSONALIZADO PARA BOTONES
+# CSS PERSONALIZADO PARA BOTONES Y ESTILOS GENERALES
 # ------------------------------------------------------------
-# CSS actualizado para botones primary, secondary y tertiary con cambios en el secondary
 st.markdown(
     """
     <style>
-    /* Botón Primary */
-    button[kind="primary"] {
-        background-color: #5a189a !important; /* Morado oscuro */
+    /* Importar fuentes */
+    @import url('https://fonts.googleapis.com/css2?family=Soleil:wght@400;600&display=swap');
+
+    /* Estilos Generales */
+    body {
+        font-family: 'Soleil', sans-serif;
+        background-color: #f2f3f5; /* Fondo claro */
+        color: #1d242d; /* Texto principal en gris oscuro */
+    }
+
+    /* Encabezado y Logo */
+    .logo {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        padding: 20px 0;
+    }
+
+    /* Tarjeta de Bienvenida */
+    .welcome-card {
+        background-color: #ffffff;
+        border-radius: 15px;
+        box-shadow: 0 6px 16px rgba(0, 0, 0, 0.1);
+        padding: 2rem;
+        text-align: center;
+        margin: 2rem auto;
+        max-width: 700px;
+    }
+
+    .welcome-card h3 {
+        color: #4e20e2; /* Morado principal */
+        font-size: 2.5em;
+        margin-bottom: 1rem;
+    }
+
+    .welcome-card p {
+        color: #333333;
+        font-size: 1.1em;
+        line-height: 1.6;
+        margin-bottom: 2rem;
+    }
+
+    /* Estilos para Botones de Streamlit */
+    .stButton button {
+        background-color: #4e20e2 !important; /* Morado principal */
         color: white !important;
         border: none !important;
-        border-radius: 5px !important;
-        padding: 0.6em 1.2em !important;
-        font-size: 16px !important;
+        border-radius: 25px !important; /* Botón redondeado */
+        padding: 0.8em 2em !important;
+        font-size: 1em !important;
         cursor: pointer !important;
+        transition: background-color 0.3s ease;
+        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        font-family: 'Soleil', sans-serif;
     }
 
-    button[kind="primary"]:hover {
-        background-color: #7b2cbf !important; /* Morado claro al hacer hover */
-        color: #ffffff !important;
+    .stButton button:hover {
+        background-color: #3e1fff !important; /* Morado más claro al hacer hover */
     }
 
-    /* Botón Secondary (nuevo diseño) */
-    button[kind="secondary"] {
-        background-color: #d3a5fa !important; /* Morado claro */
-        color: #5a189a !important; /* Texto morado oscuro */
-        border: none !important;
-        border-radius: 5px !important;
-        padding: 0.6em 1.2em !important;
-        font-size: 16px !important;
-        cursor: pointer !important;
+    /* Estilos para Text Areas */
+    .stTextArea textarea {
+        background-color: #ffffff;
+        border: 1px solid #4e20e2;
+        border-radius: 10px;
+        padding: 1em;
+        font-size: 1em;
+        font-family: 'Soleil', sans-serif;
+        color: #1d242d;
     }
 
-    button[kind="secondary"]:hover {
-        background-color: #dcbcf7 !important; /* Fondo más claro al hacer hover */
-        color: #7b2cbf !important; /* Texto morado más claro */
+    /* Estilos para Select Boxes */
+    .stSelectbox select {
+        background-color: #ffffff;
+        border: 1px solid #4e20e2;
+        border-radius: 10px;
+        padding: 0.5em;
+        font-size: 1em;
+        font-family: 'Soleil', sans-serif;
+        color: #1d242d;
     }
 
-    /* Botón Tertiary */
-    button[kind="tertiary"] {
-        background-color: transparent !important; /* Fondo transparente */
-        color: #5a189a !important; /* Texto morado */
-        border: none !important;
-        padding: 0.6em 1.2em !important;
-        font-size: 16px !important;
-        cursor: pointer !important;
-        text-decoration: underline !important; /* Subrayado para diferenciar */
+    /* Mejorar la apariencia de los botones de carga de archivos */
+    .stFileUploader > div > div > div {
+        background-color: #ffffff;
+        border: 2px dashed #4e20e2;
+        border-radius: 10px;
+        padding: 1.5em;
+        text-align: center;
+        color: #4e20e2;
+        font-family: 'Soleil', sans-serif;
     }
 
-    button[kind="tertiary"]:hover {
-        color: #7b2cbf !important; /* Texto morado claro al hacer hover */
-        text-decoration: none !important; /* Sin subrayado */
+    /* Estilos para Mensajes de Éxito y Error */
+    .stAlert > div {
+        border-left: 5px solid #4e20e2;
     }
+
+    /* Responsividad */
+    @media (max-width: 768px) {
+        .welcome-card {
+            padding: 1.5rem;
+            margin: 1rem;
+        }
+
+        .stButton button {
+            width: 100%;
+            padding: 0.6em 1em !important;
+            font-size: 0.9em !important;
+        }
+    }
+
     </style>
     """,
     unsafe_allow_html=True
 )
+
 
 # ------------------------------------------------------------
 # FUNCIONES AUXILIARES
@@ -106,7 +171,7 @@ def translate_text(input_text, source_lang, target_lang):
 # ------------------------------------------------------------
 # LOGO
 # ------------------------------------------------------------
-st.image("https://vidasprime.es/wp-content/uploads/2022/06/logo_vidas_prime_morado.png", width=200)
+st.markdown('<div class="logo"><img src="https://vidasprime.es/wp-content/uploads/2022/06/logo_vidas_prime_morado.png" width="300"></div>', unsafe_allow_html=True)
 
 # ------------------------------------------------------------
 # CONTROL DE ESTADO
@@ -138,7 +203,7 @@ disponible_idiomas = {
 if st.session_state["pantalla_bienvenida"]:
     st.markdown(
         """
-        <div class='section'>
+        <div class='welcome-card'>
             <h3>📢 Bienvenido/a</h3>
             <p>
                 Este agente está diseñado para <b>facilitar la traducción precisa y comprensible</b>
@@ -151,8 +216,10 @@ if st.session_state["pantalla_bienvenida"]:
         unsafe_allow_html=True
     )
 
+    com_but_col1, com_but_col2, com_but_col3 = st.columns([1,1,1])
+
     # Único botón "Comenzar" dentro de la pantalla de bienvenida
-    if st.button("Comenzar", help="Iniciar la aplicación", key="comenzar_btn", type='primary'):
+    if com_but_col2.button("Comenzar", help="Iniciar la aplicación", key="comenzar_btn", type='primary'):
         st.session_state["pantalla_bienvenida"] = False
         st.rerun()
     st.stop()  # Detener la ejecución aquí para no mostrar la sección principal
@@ -186,7 +253,6 @@ with col2:
 st.markdown("### Introduce texto, sube un archivo o carga el ejemplo")
 
 # Botones para modificar el área de texto
-
 uploaded_file = st.file_uploader("Cargar archivo (txt)", type=["txt"], key="file_uploader")
 if uploaded_file is not None:
     try:
@@ -203,7 +269,7 @@ with col_bot1:
     col_bot1.markdown("### Texto para traducir")
 
 with col_bot2:
-    if  col_bot2.button("Cargar ejemplo", help="Cargar un texto de ejemplo", key="cargar_ejemplo_btn", type='tertiary'):
+    if col_bot2.button("Cargar ejemplo", help="Cargar un texto de ejemplo", key="cargar_ejemplo_btn", type='tertiary'):
         st.session_state["texto_actual"] = (
             "Antecedentes familiares:\n"
             "- Antecedents familiars (Hermano): Hermano con antecedentes de laringotraqueomalacia leve. Laringitis y broncoespasmos de repetición.\n"
@@ -225,7 +291,7 @@ st.text_area(
 # ------------------------------------------------------------
 
 # Botón "Traducir" para traducir
-if st.button("Traducir", help="Traduce el texto", key="traducir_btn", type= 'primary'):
+if st.button("Traducir", help="Traduce el texto", key="traducir_btn", type='primary'):
     if not st.session_state["texto_actual"].strip():
         st.warning("Por favor, ingresa algún texto o carga un archivo válido.", icon="⚠️")
     else:
